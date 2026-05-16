@@ -57,7 +57,6 @@ public class BankAccount
         allTransactions.Add(withdrawal);
     }
 
-    // Возвращает таблицу всех операций со столбцом "текущий баланс после операции"
     public string GetAccountHistory()
     {
         var report = new StringBuilder();
