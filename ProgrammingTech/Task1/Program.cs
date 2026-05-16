@@ -25,13 +25,39 @@ class Program
         {
             var unit = FindUnitById(units, tank.UnitId);
             var factory = unit != null ? FindFactory(factories, unit) : null;
-            Console.WriteLine($"{tank.Name} ({tank.Description}) — установка {unit?.Name ?? "(нет)"}, завод {factory?.Name ?? "(нет)"}, загрузка {tank.Volume}/{tank.MaxVolume}");
+            string type = ClassifyTank(tank.Description);
+            Console.WriteLine($"{tank.Name} [{type}] — установка {unit?.Name ?? "(нет)"}, завод {factory?.Name ?? "(нет)"}, загрузка {tank.Volume}/{tank.MaxVolume}");
         }
 
         // Общая сумма загрузки всех резервуаров
         var totalVolume = GetTotalVolume(tanks);
         Console.WriteLine();
         Console.WriteLine($"Общий объём резервуаров: {totalVolume}");
+
+        // Поиск резервуара по имени, введённому пользователем
+        Console.WriteLine();
+        Console.Write("Введите имя резервуара для поиска: ");
+        string? input = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            Console.WriteLine("Имя не введено.");
+        }
+        else
+        {
+            var tank = FindTankByName(tanks, input);
+            if (tank == null)
+            {
+                Console.WriteLine($"Резервуар '{input}' не найден.");
+            }
+            else
+            {
+                var unit = FindUnitById(units, tank.UnitId);
+                var factory = unit != null ? FindFactory(factories, unit) : null;
+                string type = ClassifyTank(tank.Description);
+                Console.WriteLine($"Найден: {tank.Name}, тип: {type}, установка {unit?.Name}, завод {factory?.Name}, загрузка {tank.Volume}/{tank.MaxVolume}");
+            }
+        }
     }
 
     public static Tank[] GetTanks()
@@ -130,5 +156,34 @@ class Program
             }
         }
         return null;
+    }
+
+    private static Tank? FindTankByName(Tank[] tanks, string name)
+    {
+        foreach (var t in tanks)
+        {
+            if (t.Name == name)
+            {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    // Классификация типа резервуара по первому слову в описании (через switch)
+    private static string ClassifyTank(string description)
+    {
+        string firstWord = description.Split(' ')[0].ToLower();
+        switch (firstWord)
+        {
+            case "надземный":
+                return "надземный";
+            case "подземный":
+                return "подземный";
+            case "подводный":
+                return "подводный";
+            default:
+                return "неизвестный";
+        }
     }
 }
