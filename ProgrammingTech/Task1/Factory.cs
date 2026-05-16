@@ -1,5 +1,6 @@
 ﻿namespace Task1;
 
+// Завод. Верхний уровень иерархии: Завод → Установки → Резервуары
 public class Factory
 {
     public int Id { get; set; }

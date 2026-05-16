@@ -1,5 +1,6 @@
 ﻿namespace Task1;
 
+// Резервуар. Принадлежит установке через UnitId
 public class Tank
 {
     public int Id { get; set; }

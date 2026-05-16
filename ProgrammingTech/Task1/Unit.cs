@@ -1,5 +1,6 @@
 ﻿namespace Task1;
 
+// Установка. Принадлежит заводу через FactoryId. Содержит резервуары (связь — через UnitId в Tank)
 public class Unit
 {
     public int Id { get; set; }
