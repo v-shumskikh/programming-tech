@@ -4,8 +4,10 @@ namespace Lab2;
 
 public class BankAccount
 {
+    // Счётчик номеров счетов — общий для всех экземпляров (static), увеличивается при создании каждого счёта
     private static int s_accountNumberSeed = 1234567890;
 
+    // История всех операций по счёту. Баланс считаем как сумму, отдельное поле не храним
     private List<Transaction> allTransactions = new List<Transaction>();
 
     // Минимальный допустимый баланс. Для обычного счёта = 0,
@@ -15,6 +17,7 @@ public class BankAccount
     public string Number { get; }
     public string Owner { get; set; }
 
+    // Баланс — это сумма всех транзакций (пополнения с плюсом, снятия с минусом)
     public decimal Balance
     {
         get
@@ -49,6 +52,7 @@ public class BankAccount
         }
     }
 
+    // Пополнение счёта. Сумма должна быть положительной
     public void MakeDeposit(decimal amount, DateTime date, string note)
     {
         if (amount <= 0)
@@ -59,6 +63,7 @@ public class BankAccount
         allTransactions.Add(deposit);
     }
 
+    // Снятие со счёта. Лимит проверяется через виртуальный CheckWithdrawalLimit (наследник решает, что делать)
     public void MakeWithdrawal(decimal amount, DateTime date, string note)
     {
         if (amount <= 0)
@@ -71,6 +76,7 @@ public class BankAccount
         // Transaction — это будет дополнительная транзакция-комиссия
         Transaction? overdraftTransaction = CheckWithdrawalLimit(Balance - amount < minimumBalance);
 
+        // Снятие сохраняем со знаком минус, чтобы автоматически уменьшать баланс при суммировании
         var withdrawal = new Transaction(-amount, date, note);
         allTransactions.Add(withdrawal);
         if (overdraftTransaction != null)
@@ -96,6 +102,7 @@ public class BankAccount
     {
     }
 
+    // Возвращает историю операций в виде таблицы (через StringBuilder — быстрее, чем склейка строк +)
     public string GetAccountHistory()
     {
         var report = new StringBuilder();
