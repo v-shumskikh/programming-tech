@@ -8,6 +8,10 @@ public class BankAccount
 
     private List<Transaction> allTransactions = new List<Transaction>();
 
+    // Минимальный допустимый баланс. Для обычного счёта = 0,
+    // для кредитной линии будет отрицательным.
+    private readonly decimal minimumBalance;
+
     public string Number { get; }
     public string Owner { get; set; }
 
@@ -24,12 +28,19 @@ public class BankAccount
         }
     }
 
+    // Конструктор без minimumBalance — пробрасывает 0 в основной (через :this)
     public BankAccount(string name, decimal initialBalance)
+        : this(name, initialBalance, 0)
+    {
+    }
+
+    public BankAccount(string name, decimal initialBalance, decimal minimumBalance)
     {
         Number = s_accountNumberSeed.ToString();
         s_accountNumberSeed++;
 
         Owner = name;
+        this.minimumBalance = minimumBalance;
         MakeDeposit(initialBalance, DateTime.Now, "Начальный баланс");
     }
 
@@ -49,12 +60,18 @@ public class BankAccount
         {
             throw new ArgumentOutOfRangeException(nameof(amount), "Сумма снятия должна быть положительной");
         }
-        if (Balance - amount < 0)
+        if (Balance - amount < minimumBalance)
         {
-            throw new InvalidOperationException("На счёте недостаточно средств");
+            throw new InvalidOperationException("Недостаточно средств с учётом минимального баланса");
         }
         var withdrawal = new Transaction(-amount, date, note);
         allTransactions.Add(withdrawal);
+    }
+
+    // Месячные операции (проценты, комиссии, автопополнения).
+    // В базовом классе ничего не делает — каждый наследник переопределяет под свою логику.
+    public virtual void PerformMonthEndTransactions()
+    {
     }
 
     public string GetAccountHistory()

@@ -11,4 +11,13 @@ public class GiftCardAccount : BankAccount
     {
         this.monthlyDeposit = monthlyDeposit;
     }
+
+    // В конце месяца, если задана сумма автопополнения — добавляем её на карту
+    public override void PerformMonthEndTransactions()
+    {
+        if (monthlyDeposit > 0)
+        {
+            MakeDeposit(monthlyDeposit, DateTime.Now, "Ежемесячное пополнение карты");
+        }
+    }
 }
