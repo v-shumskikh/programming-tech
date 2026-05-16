@@ -1,16 +1,16 @@
-﻿namespace Lab1;
+﻿using System.Text;
+
+namespace Lab1;
 
 public class BankAccount
 {
     private static int s_accountNumberSeed = 1234567890;
 
-    // Все операции по счёту (на их основе считается баланс)
     private List<Transaction> allTransactions = new List<Transaction>();
 
     public string Number { get; }
     public string Owner { get; set; }
 
-    // Баланс — это сумма всех транзакций (вычисляется при каждом обращении)
     public decimal Balance
     {
         get
@@ -30,20 +30,45 @@ public class BankAccount
         s_accountNumberSeed++;
 
         Owner = name;
-        // Начальный баланс заводим как первую операцию-пополнение
         MakeDeposit(initialBalance, DateTime.Now, "Начальный баланс");
     }
 
     public void MakeDeposit(decimal amount, DateTime date, string note)
     {
+        if (amount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), "Сумма пополнения должна быть положительной");
+        }
         var deposit = new Transaction(amount, date, note);
         allTransactions.Add(deposit);
     }
 
     public void MakeWithdrawal(decimal amount, DateTime date, string note)
     {
-        // В транзакции снятия сумма отрицательная — чтобы баланс уменьшался при суммировании
+        if (amount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), "Сумма снятия должна быть положительной");
+        }
+        if (Balance - amount < 0)
+        {
+            throw new InvalidOperationException("На счёте недостаточно средств");
+        }
         var withdrawal = new Transaction(-amount, date, note);
         allTransactions.Add(withdrawal);
+    }
+
+    // Возвращает таблицу всех операций со столбцом "текущий баланс после операции"
+    public string GetAccountHistory()
+    {
+        var report = new StringBuilder();
+        report.AppendLine("Дата\t\tСумма\tБаланс\tПримечание");
+
+        decimal balance = 0;
+        foreach (var item in allTransactions)
+        {
+            balance += item.Amount;
+            report.AppendLine($"{item.Date.ToShortDateString()}\t{item.Amount}\t{balance}\t{item.Notes}");
+        }
+        return report.ToString();
     }
 }
