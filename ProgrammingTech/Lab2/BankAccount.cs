@@ -41,7 +41,12 @@ public class BankAccount
 
         Owner = name;
         this.minimumBalance = minimumBalance;
-        MakeDeposit(initialBalance, DateTime.Now, "Начальный баланс");
+
+        // Кредитный счёт может открываться с нулевым балансом — пополнения тогда не делаем
+        if (initialBalance > 0)
+        {
+            MakeDeposit(initialBalance, DateTime.Now, "Начальный баланс");
+        }
     }
 
     public void MakeDeposit(decimal amount, DateTime date, string note)
@@ -60,12 +65,29 @@ public class BankAccount
         {
             throw new ArgumentOutOfRangeException(nameof(amount), "Сумма снятия должна быть положительной");
         }
-        if (Balance - amount < minimumBalance)
+
+        // Если снятие выводит баланс ниже минимума — даём наследнику решить, что делать:
+        // null — никакой комиссии (или сам выбросит исключение, как делает база)
+        // Transaction — это будет дополнительная транзакция-комиссия
+        Transaction? overdraftTransaction = CheckWithdrawalLimit(Balance - amount < minimumBalance);
+
+        var withdrawal = new Transaction(-amount, date, note);
+        allTransactions.Add(withdrawal);
+        if (overdraftTransaction != null)
+        {
+            allTransactions.Add(overdraftTransaction);
+        }
+    }
+
+    // Поведение по умолчанию для обычного счёта: при превышении — ошибка.
+    // Наследники (например, кредитная линия) могут переопределить и вернуть комиссию.
+    protected virtual Transaction? CheckWithdrawalLimit(bool isOverdrawn)
+    {
+        if (isOverdrawn)
         {
             throw new InvalidOperationException("Недостаточно средств с учётом минимального баланса");
         }
-        var withdrawal = new Transaction(-amount, date, note);
-        allTransactions.Add(withdrawal);
+        return null;
     }
 
     // Месячные операции (проценты, комиссии, автопополнения).
